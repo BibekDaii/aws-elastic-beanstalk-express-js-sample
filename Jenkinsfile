@@ -16,8 +16,8 @@ pipeline {
         stage('Security Scan') {
             steps {
                 sh '''
-                  wget https://github.com/jeremylong/Dependency-Check/releases/download/v10.0.3/dependency-check-10.0.3-release.zip
-                  unzip dependency-check-10.0.3-release.zip
+                  wget https://github.com/jeremylong/Dependency-Check/releases/download/v9.1.10/dependency-check-9.1.10-release.zip
+                  unzip dependency-check-9.1.10-release.zip
                   dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
                 '''
             }
