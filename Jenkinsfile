@@ -15,11 +15,7 @@ pipeline {
         }
         stage('Security Scan') {
             steps {
-                sh '''
-                  wget https://github.com/jeremylong/Dependency-Check/releases/download/v9.0.0/dependency-check-9.0.0-release.zip
-                  unzip dependency-check-9.0.0-release.zip
-                  dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
-                '''
+                sh 'npm audit --audit-level=high'
             }
         }
         stage('Build Docker Image') {
