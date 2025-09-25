@@ -1,6 +1,9 @@
 pipeline {
     agent {
-        docker { image 'node:16' }  // Use Node 16 as build agent per requirements
+        docker {
+            image 'node:16'  // Use Node 16 as build agent
+            args '-v /var/run/docker.sock:/var/run/docker.sock --network project2-compose_jenkins'  // Connect to DinD network and socket
+        }
     }
     stages {
         stage('Install Dependencies') {
