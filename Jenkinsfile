@@ -15,13 +15,11 @@ pipeline {
         }
         stage('Security Scan') {
             steps {
-                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
-                    sh '''
-                      npm install -g snyk
-                      snyk auth $SNYK_TOKEN
-                      snyk test --severity-threshold=high
-                    '''
-                }
+                sh '''
+                  wget https://github.com/jeremylong/Dependency-Check/releases/download/v9.0.0/dependency-check-9.0.0-release.zip
+                  unzip dependency-check-9.0.0-release.zip
+                  dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
+                '''
             }
         }
         stage('Build Docker Image') {
