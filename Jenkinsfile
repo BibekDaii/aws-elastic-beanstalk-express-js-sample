@@ -15,11 +15,13 @@ pipeline {
         }
         stage('Security Scan') {
             steps {
-                sh '''
-                  wget https://github.com/jeremylong/Dependency-Check/releases/download/v9.1.10/dependency-check-9.1.10-release.zip
-                  unzip dependency-check-9.1.10-release.zip
-                  dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
-                '''
+                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+                    sh '''
+                      npm install -g snyk
+                      snyk auth $SNYK_TOKEN
+                      snyk test --severity-threshold=high
+                    '''
+                }
             }
         }
         stage('Build Docker Image') {
@@ -38,7 +40,7 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: 'dep-check-report.html'
+            archiveArtifacts artifacts: '**/*'
         }
     }
 }
