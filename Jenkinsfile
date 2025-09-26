@@ -1,11 +1,11 @@
 pipeline {
     agent {
-        docker { image 'docker:20.10.7' }  // Use Docker image with pre-installed Docker
+        docker { image 'docker:20.10.7' }
     }
     stages {
         stage('Install Dependencies') {
             steps {
-                sh 'apk add --no-cache nodejs npm'  // Install Node.js and npm on Alpine-based Docker image
+                sh 'apk add --no-cache nodejs npm'
                 sh 'npm install --save'
             }
         }
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Starting security scan with v11.0.0..."
-                    rm -f dependency-check-11.0.0-release.zip  # Remove existing file to avoid overwrite issues
+                    rm -f dependency-check-11.0.0-release.zip
                     wget -c https://github.com/dependency-check/DependencyCheck/releases/download/v11.0.0/dependency-check-11.0.0-release.zip
                     unzip -o dependency-check-11.0.0-release.zip
                     export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
@@ -39,6 +39,7 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
+                sh 'ls -la'  # Debug: List files to confirm Dockerfile presence
                 sh 'docker build -t bibekdaii/my-node-app:latest .'
             }
         }
