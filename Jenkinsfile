@@ -16,36 +16,42 @@ pipeline {
         stage('Install Java') {
             steps {
                 sh '''
-                  sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-                  sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
-                  apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
-                  apt-get install -y default-jre-headless
+                    echo "Updating apt sources..."
+                    sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+                    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
+                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false || { echo "apt-get update failed"; exit 1; }
+                    apt-get install -y default-jre-headless || { echo "Java installation failed"; exit 1; }
+                    echo "Java installed, JAVA_HOME set to /usr/lib/jvm/java-11-openjdk-arm64"
                 '''
             }
         }
         stage('Security Scan') {
             steps {
                 sh '''
-                  wget https://github.com/jeremylong/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
-                  unzip -o dependency-check-12.1.0-release.zip
-                  export JAVA_HOME=/usr/lib/jvm/default-java
-                  export PATH=$JAVA_HOME/bin:$PATH
-                  dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
+                    echo "Starting security scan..."
+                    wget https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
+                    unzip -o dependency-check-12.1.0-release.zip
+                    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
+                    export PATH=$JAVA_HOME/bin:$PATH
+                    echo "JAVA_HOME is $JAVA_HOME"
+                    dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7 || { echo "Scan failed"; exit 1; }
                 '''
             }
         }
         stage('Install Docker') {
             steps {
                 sh '''
-                  sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-                  sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
-                  apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
-                  apt-get install -y ca-certificates curl gnupg lsb-release
-                  mkdir -p /etc/apt/keyrings
-                  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                  echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian buster stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-                  apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
-                  apt-get install -y docker-ce docker-ce-cli containerd.io
+                    echo "Updating apt sources for Docker..."
+                    sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+                    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
+                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false || { echo "apt-get update failed"; exit 1; }
+                    apt-get install -y ca-certificates curl gnupg lsb-release || { echo "Prerequisites failed"; exit 1; }
+                    mkdir -p /etc/apt/keyrings
+                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                    echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian buster stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false || { echo "apt-get update failed"; exit 1; }
+                    apt-get install -y docker-ce docker-ce-cli containerd.io || { echo "Docker installation failed"; exit 1; }
+                    echo "Docker installed successfully"
                 '''
             }
         }
