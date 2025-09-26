@@ -1,8 +1,3 @@
-#FROM node:16
-WORKDIR /app
-COPY . .
-RUN npm install
-CMD ["node", "app.js"]
 # Use official Node.js runtime as base image
 FROM node:16
 
