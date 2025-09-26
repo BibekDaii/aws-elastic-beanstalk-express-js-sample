@@ -26,7 +26,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Starting security scan with v11.0.0..."
-                    wget https://github.com/dependency-check/DependencyCheck/releases/download/v11.0.0/dependency-check-11.0.0-release.zip
+                    rm -f dependency-check-11.0.0-release.zip  # Remove existing file to avoid overwrite issues
+                    wget -c https://github.com/dependency-check/DependencyCheck/releases/download/v11.0.0/dependency-check-11.0.0-release.zip
                     unzip -o dependency-check-11.0.0-release.zip
                     export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
                     export PATH=$JAVA_HOME/bin:$PATH
