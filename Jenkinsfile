@@ -29,6 +29,7 @@ pipeline {
                 sh '''
                   wget https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
                   unzip -o dependency-check-12.1.0-release.zip
+                  export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
                   dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
                 '''
             }
