@@ -42,16 +42,13 @@ pipeline {
         stage('Install Docker') {
             steps {
                 sh '''
-                    echo "Updating apt sources for Docker..."
-                    sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-                    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
-                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false || { echo "apt-get update failed"; exit 1; }
-                    apt-get install -y ca-certificates curl gnupg lsb-release || { echo "Prerequisites failed"; exit 1; }
-                    mkdir -p /etc/apt/keyrings
-                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                    echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian buster stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false || { echo "apt-get update failed"; exit 1; }
-                    apt-get install -y docker-ce docker-ce-cli containerd.io || { echo "Docker installation failed"; exit 1; }
+                    echo "Installing Docker via script to avoid dpkg issues..."
+                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
+                    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+                    echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian buster stable" > /etc/apt/sources.list.d/docker.list
+                    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
+                    apt-get install -y docker-ce=5:20.10.7~3-0~debian-buster docker-ce-cli=5:20.10.7~3-0~debian-buster containerd.io || { echo "Docker installation failed"; exit 1; }
                     echo "Docker installed successfully"
                 '''
             }
