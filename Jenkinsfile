@@ -1,9 +1,6 @@
 pipeline {
     agent {
-        docker {
-            image 'node:16'  // Use Node 16 as build agent
-            args '-v /var/run/docker.sock:/var/run/docker.sock --network project2-compose_jenkins'  // Connect to DinD network and socket
-        }
+        docker { image 'node:16' }  // Use Node 16 as build agent per requirements
     }
     stages {
         stage('Install Dependencies') {
@@ -16,13 +13,31 @@ pipeline {
                 sh 'npm test'
             }
         }
+        stage('Install Java') {
+            steps {
+                sh 'apt-get update && apt-get install -y default-jre-headless'
+            }
+        }
         stage('Security Scan') {
             steps {
                 sh '''
-			wget https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.5/dependency-check-12.1.5-release.zip
-          unzip dependency-check-12.1.5-release.zip
-          dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
-        '''
+                  wget https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
+                  unzip -o dependency-check-12.1.0-release.zip
+                  dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7
+                '''
+            }
+        }
+        stage('Install Docker') {
+            steps {
+                sh '''
+                  apt-get update
+                  apt-get install -y ca-certificates curl gnupg lsb-release
+                  mkdir -p /etc/apt/keyrings
+                  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                  apt-get update
+                  apt-get install -y docker-ce docker-ce-cli containerd.io
+                '''
             }
         }
         stage('Build Docker Image') {
@@ -41,7 +56,7 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: '**/*'
+            archiveArtifacts artifacts: 'dep-check-report.html'
         }
     }
 }
