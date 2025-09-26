@@ -39,7 +39,7 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'ls -la'  # Debug: List files to confirm Dockerfile presence
+                sh 'ls -la'  // Debug: List files to confirm Dockerfile presence
                 sh 'docker build -t bibekdaii/my-node-app:latest .'
             }
         }
@@ -57,4 +57,4 @@ pipeline {
             archiveArtifacts artifacts: 'dep-check-report.html'
         }
     }
-}
+} 
