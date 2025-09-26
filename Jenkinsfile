@@ -21,19 +21,20 @@ pipeline {
                     sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
                     apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false || { echo "apt-get update failed"; exit 1; }
                     apt-get install -y default-jre-headless || { echo "Java installation failed"; exit 1; }
-                    echo "Java installed, JAVA_HOME set to /usr/lib/jvm/java-11-openjdk-arm64"
+                    echo "Java installed, checking version: $(java -version 2>&1)"
                 '''
             }
         }
         stage('Security Scan') {
             steps {
                 sh '''
-                    echo "Starting security scan..."
-                    wget https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
-                    unzip -o dependency-check-12.1.0-release.zip
+                    echo "Starting security scan with v11.0.0..."
+                    wget https://github.com/dependency-check/DependencyCheck/releases/download/v11.0.0/dependency-check-11.0.0-release.zip
+                    unzip -o dependency-check-11.0.0-release.zip
                     export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
                     export PATH=$JAVA_HOME/bin:$PATH
-                    echo "JAVA_HOME is $JAVA_HOME"
+                    echo "JAVA_HOME is $JAVA_HOME, PATH is $PATH"
+                    java -version
                     dependency-check/bin/dependency-check.sh --scan . --format HTML --out dep-check-report.html --failOnCVSS 7 || { echo "Scan failed"; exit 1; }
                 '''
             }
