@@ -15,7 +15,12 @@ pipeline {
         }
         stage('Install Java') {
             steps {
-                sh 'apt-get update && apt-get install -y default-jre-headless'
+                sh '''
+                  sed -i "s/deb.debian.org/archive.debian.org/g" /etc/apt/sources.list
+                  sed -i "s/security.debian.org/archive.debian.org/g" /etc/apt/sources.list
+                  apt-get update
+                  apt-get install -y default-jre-headless
+                '''
             }
         }
         stage('Security Scan') {
@@ -30,11 +35,13 @@ pipeline {
         stage('Install Docker') {
             steps {
                 sh '''
+                  sed -i "s/deb.debian.org/archive.debian.org/g" /etc/apt/sources.list
+                  sed -i "s/security.debian.org/archive.debian.org/g" /etc/apt/sources.list
                   apt-get update
                   apt-get install -y ca-certificates curl gnupg lsb-release
                   mkdir -p /etc/apt/keyrings
                   curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bullseye stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
                   apt-get update
                   apt-get install -y docker-ce docker-ce-cli containerd.io
                 '''
