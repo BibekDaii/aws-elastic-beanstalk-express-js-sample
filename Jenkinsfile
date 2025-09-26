@@ -18,7 +18,8 @@ pipeline {
                 sh '''
                   sed -i "s/deb.debian.org/archive.debian.org/g" /etc/apt/sources.list
                   sed -i "s/security.debian.org/archive.debian.org/g" /etc/apt/sources.list
-                  apt-get update
+                  sed -i "s/deb [arch=/deb [ signed-by=/g" /etc/apt/sources.list
+                  apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
                   apt-get install -y default-jre-headless
                 '''
             }
@@ -37,12 +38,13 @@ pipeline {
                 sh '''
                   sed -i "s/deb.debian.org/archive.debian.org/g" /etc/apt/sources.list
                   sed -i "s/security.debian.org/archive.debian.org/g" /etc/apt/sources.list
-                  apt-get update
+                  sed -i "s/deb [arch=/deb [ signed-by=/g" /etc/apt/sources.list
+                  apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
                   apt-get install -y ca-certificates curl gnupg lsb-release
                   mkdir -p /etc/apt/keyrings
                   curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bullseye stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-                  apt-get update
+                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian buster stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                  apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
                   apt-get install -y docker-ce docker-ce-cli containerd.io
                 '''
             }
